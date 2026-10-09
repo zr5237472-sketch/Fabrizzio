@@ -1,0 +1,237 @@
+<title>Test de Estrategias de Riesgo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: una hoja de respuestas — columna estrecha, un caso por tarjeta, opciones como burbujas de examen.
+   Color: papel azulado, tinta marino, naranja de señalización de obra como acento. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#14213d; --muted:#5b6676; --line:#d3d9e0;
+  --accent:#d9480f; --accent-soft:#fdeee6; --ok:#17794a; --ok-soft:#e6f4ec; --bad:#b83227; --bad-soft:#fbeae8;
+  --pick-bg:#14213d; --pick-fg:#ffffff; --hover:#e4e9ef;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141b; --surface:#171e27; --ink:#e8edf3; --muted:#9aa6b5; --line:#2b3542;
+  --accent:#ff8a4c; --accent-soft:#2a1d15; --ok:#4cc38a; --ok-soft:#16281f; --bad:#ff8577; --bad-soft:#2d1917;
+  --pick-bg:#e8edf3; --pick-fg:#0f141b; --hover:#212b37; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141b; --surface:#171e27; --ink:#e8edf3; --muted:#9aa6b5; --line:#2b3542;
+  --accent:#ff8a4c; --accent-soft:#2a1d15; --ok:#4cc38a; --ok-soft:#16281f; --bad:#ff8577; --bad-soft:#2d1917;
+  --pick-bg:#e8edf3; --pick-fg:#0f141b; --hover:#212b37; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;margin:0;padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:720px;margin-inline:auto}
+header{padding-block:28px 12px}
+.kicker{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+h1{font-size:clamp(26px,6vw,34px);line-height:1.15;margin:0 0 10px;font-weight:600;text-wrap:balance}
+.lead{color:var(--muted);margin:0;max-width:60ch}
+details.ref{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-block:16px;padding:0}
+details.ref summary{cursor:pointer;padding:12px 14px;font-weight:500;list-style:none}
+details.ref summary::-webkit-details-marker{display:none}
+details.ref summary::after{content:"+";float:right;font-family:var(--f-mono);color:var(--muted)}
+details.ref[open] summary::after{content:"−"}
+.defs{display:grid;gap:8px;padding:0 14px 14px;margin:0}
+.defs div{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:14px}
+.defs dt{font-weight:600}.defs dd{margin:0;color:var(--muted)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);margin-inline:-16px;padding-inline:16px}
+.bar-in{max-width:720px;margin-inline:auto;display:flex;gap:12px;align-items:center}
+.prog{flex:1;min-width:0}
+.prog-t{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.track{height:6px;background:var(--line);border-radius:3px;margin-top:5px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--accent);transition:width .2s}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+button{font:inherit;color:inherit}
+.btn{border:1.5px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:focus-visible,.opt:focus-visible,summary:focus-visible,.jump:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+h2.sec{font-size:13px;font-family:var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:30px 0 4px;font-weight:500}
+.sec-note{margin:0 0 10px;color:var(--muted);font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-block:12px;scroll-margin-top:90px}
+.card.ok{border-color:var(--ok)}.card.bad{border-color:var(--bad)}
+.qn{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin:0 0 4px}
+.qt{margin:0 0 12px;text-wrap:pretty}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:7px 14px 7px 8px;cursor:pointer;min-height:40px}
+.opt:hover{background:var(--hover)}
+.opt .l{font-family:var(--f-mono);font-size:12px;font-weight:500;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--muted);display:inline-grid;place-items:center;color:var(--muted)}
+.opt[aria-checked="true"]{background:var(--pick-bg);color:var(--pick-fg);border-color:var(--pick-bg)}
+.opt[aria-checked="true"] .l{border-color:var(--pick-fg);color:var(--pick-fg)}
+.locked .opt{cursor:default}.locked .opt:hover{background:transparent}.locked .opt[aria-checked="true"]:hover{background:var(--pick-bg)}
+.opt.right{border-color:var(--ok);box-shadow:0 0 0 2px var(--ok)}
+.opt.wrong{border-color:var(--bad);box-shadow:0 0 0 2px var(--bad)}
+.exp{margin-top:12px;border-radius:8px;padding:10px 12px;font-size:14.5px}
+.exp.ok{background:var(--ok-soft)}.exp.bad{background:var(--bad-soft)}.exp.none{background:var(--accent-soft)}
+.exp b.v{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.exp p{margin:4px 0 0}.exp .no{color:var(--muted)}
+#result{background:var(--surface);border:1.5px solid var(--ink);border-radius:14px;padding:18px;margin-block:20px}
+#result{scroll-margin-top:80px}#result[hidden]{display:none}
+.score{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.big{font-size:clamp(42px,12vw,60px);font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.of{font-family:var(--f-mono);color:var(--muted)}
+.verdict{margin:8px 0 16px;font-weight:500}
+.strat{display:grid;gap:10px;margin:0 0 16px;padding:0;list-style:none}
+.strat li{display:grid;grid-template-columns:92px 1fr 40px;align-items:center;gap:10px;font-size:14px}
+.sbar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.sbar i{display:block;height:100%;background:var(--ok)}
+.sbar i.low{background:var(--bad)}.sbar i.mid{background:var(--accent)}
+.strat .n{font-family:var(--f-mono);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.tip{background:var(--accent-soft);border-radius:8px;padding:10px 12px;font-size:14.5px;margin:0 0 14px}
+.jumps{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.jump{border:1.5px solid var(--bad);background:transparent;color:var(--bad);border-radius:999px;padding:3px 12px;cursor:pointer;font-family:var(--f-mono);font-size:13px}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+footer{margin-top:32px;font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+footer p{margin:0 0 8px}
+@media (max-width:420px){.defs div{grid-template-columns:1fr;gap:0}.strat li{grid-template-columns:80px 1fr 36px}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="kicker">CIV 901 · Políticas Públicas e Infraestructura</p>
+  <h1>Test de estrategias de respuesta al riesgo</h1>
+  <p class="lead">Lee cada caso y marca la mejor estrategia. Al terminar, pulsa Corregir: verás tu puntaje, qué estrategia confundes más y la explicación de cada caso.</p>
+  <details class="ref"><summary>Repaso rápido de las estrategias</summary>
+    <dl class="defs">
+      <div><dt>Evitar</dt><dd>Eliminar la causa del riesgo, cambiando el alcance o el método, para que ya no exista.</dd></div>
+      <div><dt>Transferir</dt><dd>Pasar la consecuencia económica a otra parte: seguro, fianza, fórmula de reajuste. No baja la probabilidad.</dd></div>
+      <div><dt>Mitigar</dt><dd>Hacer algo que reduce la probabilidad o el impacto, sin eliminar el riesgo.</dd></div>
+      <div><dt>Aceptar</dt><dd>Tolerarlo porque el daño es pequeño o reducirlo cuesta más. Puede ser activa, con una reserva de contingencia.</dd></div>
+      <div><dt>Escalar</dt><dd>Llevarlo a quien tiene la autoridad o el control, cuando excede al equipo del proyecto.</dd></div>
+    </dl>
+  </details>
+</header>
+
+<div class="bar"><div class="bar-in">
+  <div class="prog"><div class="prog-t"><span id="ptxt">0 de 24 respondidas</span><span id="ppct"></span></div><div class="track"><div class="fill" id="pfill"></div></div></div>
+  <button class="btn" id="check" type="button">Corregir</button>
+</div></div>
+
+<section id="result" hidden aria-live="polite"></section>
+
+<h2 class="sec">Parte 1 · Amenazas</h2>
+<p class="sec-note">20 casos. Las cinco opciones son siempre las mismas.</p>
+<div id="threats"></div>
+
+<h2 class="sec">Parte 2 · Oportunidades (bonus)</h2>
+<p class="sec-note">4 casos con otras opciones: Explotar, Mejorar, Compartir, Aceptar y Escalar.</p>
+<div id="opps"></div>
+
+<footer>
+  <p><b>Casos de elaboración propia</b>, con los criterios de la guía de estudio de la clase. No es un examen oficial.</p>
+  <p>El caso «cambiar a D&amp;C cuando el expediente técnico es deficiente» es ambiguo (Evitar o Transferir) y por eso no está en el test. En el examen, elige una y justifícala en una frase.</p>
+  <p>Tu Excel de clase (Tabla A) trae cuatro respuestas para amenazas, sin Escalar. Escalar viene del material de PMI-CP. Si tu examen usa cuatro, ignora la letra E.</p>
+  <p>Tus respuestas se guardan solo en este navegador.</p>
+</footer>
+</div>
+
+<script>
+const DATA={"threats": [{"id": "1", "text": "Contrato de 24 meses de un edificio público. El acero y los combustibles pueden subir bastante y ninguna de las partes controla el mercado. El contrato permite incluir una fórmula polinómica de reajuste de precios.", "correct": 1, "why": "Nadie controla el mercado, pero la fórmula reparte la variación según un índice: se transfiere (parte de) la consecuencia económica.", "not": "No es Mitigar: nada de lo que haga el equipo baja el precio del acero. No es Aceptar: el sobrecosto es probable y de monto relevante."}, {"id": "2", "text": "Se proyecta un sótano de 3 niveles en un terreno con napa freática a 2.5 m. La función de estacionamiento puede resolverse en superficie sin perder nada esencial del proyecto.", "correct": 0, "why": "Al eliminar el sótano se elimina la causa del riesgo (excavación bajo la napa). Cambiar el alcance para que el riesgo ya no exista es Evitar.", "not": "No es Mitigar: mitigar sería dejar el sótano y reducir el daño (por ejemplo, con drenaje). Aquí hay una salida que quita el riesgo por completo."}, {"id": "3", "text": "En un tramo corto de carretera, una lluvia fuera de rango tiene ~10 % de probabilidad y, si ocurre, costaría unos S/ 0.05 MM y 3 días. Prevenirla exigiría un drenaje adicional de S/ 0.4 MM.", "correct": 3, "why": "Probabilidad e impacto bajos, y reducirlo costaría ocho veces más que el daño probable. Se acepta; lo normal es dejar una pequeña contingencia (aceptación activa).", "not": "No es Mitigar: el drenaje (S/ 0.4 MM) cuesta más que el daño (S/ 0.05 MM). No es Escalar: está dentro de la autoridad del equipo."}, {"id": "4", "text": "Los vecinos podrían bloquear los accesos por el ruido y el tránsito de camiones. La obra no puede eliminarse y el conflicto no se le puede «pasar» a nadie. Se plantean reuniones mensuales y un gestor social.", "correct": 2, "why": "Las reuniones y el gestor social reducen la probabilidad y el impacto del conflicto, sin eliminarlo. Eso es Mitigar.", "not": "No es Transferir: la relación con la comunidad no se compra con un seguro. No es Evitar: no se puede cancelar la obra."}, {"id": "5", "text": "Se aprueba una norma nacional que cambia los requisitos de permisos ambientales de todos los proyectos del sector. El equipo del proyecto no puede modificar la norma ni decidir la política.", "correct": 4, "why": "El riesgo está fuera del control y de la autoridad del equipo. Se lleva a quien puede actuar (alta dirección, ministerio).", "not": "No es Aceptar: puede detener el proyecto y no es pequeño. No es Mitigar: el equipo no tiene palanca sobre la norma."}, {"id": "6", "text": "Los ductos de ventilación podrían chocar con las vigas porque las diseñan equipos distintos. Se implementa un registro de interfaces y coordinación BIM antes de construir.", "correct": 2, "why": "No se elimina el hecho de que haya varias disciplinas, pero el registro y el BIM bajan la probabilidad de choques. Eso es Mitigar.", "not": "No es Evitar: las disciplinas siguen existiendo. No es Transferir: la coordinación no se delega a un tercero ajeno."}, {"id": "7", "text": "Un accidente en obra podría dañar a terceros (peatones, vecinos) y generar indemnizaciones altas. Existe una póliza de responsabilidad civil disponible.", "correct": 1, "why": "La póliza pasa la consecuencia económica a la aseguradora. Los seguros son el ejemplo clásico de Transferir.", "not": "No es Mitigar: los controles de seguridad reducen el accidente, pero aquí la acción descrita es el seguro. No es Aceptar: el monto potencial es alto."}, {"id": "8", "text": "Un componente no esencial (un cerco perimetral) exige un predio en litigio judicial que puede tardar años. El componente puede excluirse del contrato sin afectar la función del colegio.", "correct": 0, "why": "Excluir el componente cambia el alcance y elimina el riesgo. Evitar significa que la causa deja de existir.", "not": "No es Aceptar: tolerar un litigio de años afectaría el cierre del contrato. No es Escalar: el equipo sí puede decidir el alcance."}, {"id": "9", "text": "El Gobierno Regional anuncia un posible recorte del presupuesto del proyecto el próximo año. El jefe de proyecto no tiene autoridad sobre el presupuesto.", "correct": 4, "why": "La decisión presupuestal escapa al equipo. Se escala al sponsor o a la alta dirección, que son quienes pueden defender el presupuesto.", "not": "No es Mitigar ni Evitar: el jefe de proyecto no controla la causa. No es Aceptar: un recorte puede paralizar la obra."}, {"id": "10", "text": "Pequeñas variaciones en el precio de insumos menores (clavos, alambre) que en conjunto no pasan de S/ 0.03 MM en una obra de S/ 100 MM. Gestionarlas una por una costaría más que el daño.", "correct": 3, "why": "El impacto es insignificante y gestionarlo cuesta más. Se acepta y se absorbe dentro del presupuesto.", "not": "No es Transferir: una fórmula de reajuste para insumos menores no vale su costo administrativo."}, {"id": "11", "text": "El trazo previsto de una carretera atraviesa un terreno comunal con oposición total. Existe un trazo alternativo de costo similar que no lo toca.", "correct": 0, "why": "Cambiar el trazo elimina la causa del conflicto. Hay una salida que quita el riesgo por completo: Evitar.", "not": "No es Mitigar: negociar con una comunidad en oposición total no garantiza nada, y hay una alternativa limpia."}, {"id": "12", "text": "El estudio de suelos cubre solo parte del terreno de un hospital. Si el riesgo se transfiere al contratista, este cotizará el peor caso y la Entidad pagará un sobreprecio aunque el riesgo no ocurra. Se encarga un estudio geotécnico complementario antes de licitar.", "correct": 2, "why": "El estudio reduce la incertidumbre del suelo (baja la probabilidad de sorpresas) sin eliminar el riesgo. Es Mitigar.", "not": "No es Transferir: pasarlo infla el precio sin reducir la incertidumbre (idea clave de la S04). Este es el riesgo «que no se transfiere»."}, {"id": "13", "text": "Si el contratista abandona la obra, la Entidad perdería el avance y tendría que contratar a otro. Se exige una carta fianza de fiel cumplimiento.", "correct": 1, "why": "La fianza traslada la consecuencia económica del incumplimiento a un garante. Fianzas y seguros son Transferir.", "not": "No es Mitigar: la fianza no reduce la probabilidad de abandono; compensa si ocurre."}, {"id": "14", "text": "Es posible un paro local de un día que detenga la obra. Costo estimado: S/ 0.02 MM. Evitarlo exigiría seguridad permanente que cuesta más. Se deja una pequeña reserva de contingencia.", "correct": 3, "why": "Se tolera el riesgo y se deja una reserva, es decir, aceptación activa. El costo de reducirlo supera el daño.", "not": "No es Mitigar: la seguridad permanente costaría más que el paro. No es Escalar: está dentro de la autoridad del equipo."}, {"id": "15", "text": "El gerente de un proyecto descubre que otra obra del mismo programa, a cargo de otra Entidad, ocupará la misma vía de acceso en las mismas fechas. Su equipo no puede resolverlo.", "correct": 4, "why": "El conflicto está fuera de su equipo y exige coordinar a nivel de programa. Se escala al director del programa.", "not": "No es Mitigar: sus acciones no cubren el uso de la vía por otra Entidad. No es Aceptar: bloquea el acceso."}, {"id": "16", "text": "Actualizar el diseño podría exigir actualizar permisos sectoriales y retrasar el inicio de obra. Se inicia la gestión de permisos en paralelo con el diseño.", "correct": 2, "why": "Hacer los trámites en paralelo reduce el impacto en el cronograma, aunque el riesgo sigue existiendo. Es Mitigar.", "not": "No es Evitar: los permisos siguen siendo necesarios. No es Transferir: los trámites ante entidades públicas no se delegan en un seguro."}, {"id": "17", "text": "El método previsto monta una torre grúa que gira sobre una línea de alta tensión (riesgo de electrocución). Se puede cambiar a una grúa móvil ubicada fuera del radio de la línea.", "correct": 0, "why": "El cambio de método elimina la exposición al peligro. La causa del riesgo desaparece: Evitar.", "not": "No es Mitigar: mitigar sería seguir con la torre grúa y añadir protecciones. Aquí hay una forma de que el riesgo no exista."}, {"id": "18", "text": "Un riesgo identificado costaría S/ 10 MM si ocurre, pero el project manager solo puede autorizar hasta S/ 3 MM de contingencia.", "correct": 4, "why": "El monto excede su autoridad. Se escala al sponsor, que es quien autoriza reservas mayores (reserva de gestión).", "not": "No es Aceptar: S/ 10 MM no es un riesgo menor. No es Mitigar: el problema no es cómo reducirlo, sino quién puede autorizar el gasto."}, {"id": "19", "text": "El equipo biomédico importado puede dañarse o perderse durante el transporte marítimo. Se contrata un seguro de transporte de carga.", "correct": 1, "why": "El seguro pasa la pérdida económica a la aseguradora. Es Transferir.", "not": "No es Mitigar: un mejor embalaje reduciría el daño, pero la acción del caso es el seguro."}, {"id": "20", "text": "Solo el 1 % de los materiales es importado. Una variación del tipo de cambio afectaría unos S/ 0.03 MM y cubrirla con instrumentos financieros sería más caro.", "correct": 3, "why": "Impacto mínimo y cobertura más cara que el daño: se acepta.", "not": "No es Transferir: cubrirlo con instrumentos financieros costaría más que el riesgo."}], "opps": [{"id": "B1", "text": "Una constructora local y una extranjera forman un consorcio para presentar una oferta conjunta en una licitación de D&C, y se reparten el beneficio.", "correct": 2, "why": "Compartir: se une a un socio para aprovechar la oportunidad y repartir el beneficio (alianzas, consorcio, JV).", "not": ""}, {"id": "B2", "text": "Podría bajar el precio del cemento por la competencia entre proveedores. Nadie puede influir en eso, así que no se hace nada especial y se aprovecha si ocurre.", "correct": 3, "why": "Aceptar: se toma la oportunidad si llega, sin invertir en provocarla.", "not": ""}, {"id": "B3", "text": "Un proveedor ofrece acero con 8 % de descuento si se compra de inmediato. Se firma la compra hoy para asegurar el ahorro.", "correct": 0, "why": "Explotar: se actúa para que la oportunidad ocurra con seguridad.", "not": ""}, {"id": "B4", "text": "Existe la posibilidad de terminar antes del plazo si el clima ayuda. Se refuerza con más cuadrillas y turnos para aumentar la probabilidad de ganar tiempo.", "correct": 1, "why": "Mejorar: se aumenta la probabilidad o el impacto de una oportunidad que ya existe.", "not": ""}]};
+const THREAT=["Evitar","Transferir","Mitigar","Aceptar","Escalar"];
+const OPP=["Explotar","Mejorar","Compartir","Aceptar","Escalar"];
+const LET="ABCDE";
+const KEY="test-estrategias-riesgo-v1";
+const TIPS=[
+ "Confundes Evitar con Mitigar: Evitar elimina la causa; Mitigar la deja y reduce el daño.",
+ "Confundes Transferir con Mitigar: Transferir pasa la consecuencia (seguro, fianza, reajuste) y no reduce la probabilidad.",
+ "Confundes Mitigar con Aceptar o Transferir: Mitigar es hacer algo concreto que reduce el riesgo sin eliminarlo.",
+ "Aceptas de menos o de más: Aceptar es cuando el daño es pequeño o reducirlo cuesta más que el daño.",
+ "Escalar es cuando el riesgo excede tu autoridad o tu control, no cuando simplemente es grande."];
+const state={answers:{},checked:false};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.answers){state.answers=s.answers;state.checked=!!s.checked}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const $=id=>document.getElementById(id);
+const all=[...DATA.threats.map(q=>({...q,opts:THREAT,kind:"t"})),...DATA.opps.map(q=>({...q,opts:OPP,kind:"o"}))];
+
+function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+
+function buildCard(q){
+  const card=el("article","card");card.id="c-"+q.id;
+  card.appendChild(el("p","qn","Caso "+q.id));
+  card.appendChild(el("p","qt",q.text));
+  const g=el("div","opts");g.setAttribute("role","radiogroup");g.setAttribute("aria-label","Caso "+q.id);
+  q.opts.forEach((name,i)=>{
+    const b=el("button","opt");b.type="button";b.setAttribute("role","radio");b.dataset.q=q.id;b.dataset.i=i;
+    b.appendChild(el("span","l",LET[i]));b.appendChild(el("span","",name));g.appendChild(b);
+  });
+  card.appendChild(g);
+  const ex=el("div","exp");ex.hidden=true;card.appendChild(ex);
+  return card;
+}
+function paint(){
+  let n=0;
+  all.forEach(q=>{
+    const card=$("c-"+q.id);const a=state.answers[q.id];if(a!=null)n++;
+    card.classList.toggle("locked",state.checked);
+    card.classList.remove("ok","bad");
+    card.querySelectorAll(".opt").forEach(b=>{
+      const i=+b.dataset.i;b.setAttribute("aria-checked",a===i?"true":"false");b.classList.remove("right","wrong");
+      b.tabIndex=(a===i||(a==null&&i===0))?0:-1;
+      if(state.checked){if(i===q.correct)b.classList.add("right");else if(i===a)b.classList.add("wrong")}
+    });
+    const ex=card.querySelector(".exp");
+    if(state.checked){
+      const good=a===q.correct;if(a!=null)card.classList.add(good?"ok":"bad");
+      ex.hidden=false;ex.className="exp "+(a==null?"none":good?"ok":"bad");ex.textContent="";
+      const v=el("b","v",a==null?"Sin responder · correcta: "+LET[q.correct]+" "+q.opts[q.correct]:good?"Correcto":"Incorrecto · correcta: "+LET[q.correct]+" "+q.opts[q.correct]);
+      ex.appendChild(v);ex.appendChild(el("p","",q.why));
+      if(q.not)ex.appendChild(el("p","no",q.not));
+    }else{ex.hidden=true}
+  });
+  $("ptxt").textContent=n+" de 24 respondidas";
+  $("ppct").textContent=Math.round(n/24*100)+" %";
+  $("pfill").style.width=(n/24*100)+"%";
+  $("check").textContent=state.checked?"Reintentar":"Corregir";
+  $("check").className=state.checked?"btn ghost":"btn";
+  renderResult();
+}
+function renderResult(){
+  const r=$("result");
+  if(!state.checked){r.hidden=true;return}
+  r.hidden=false;r.textContent="";
+  let s1=0,s2=0;const by=[0,0,0,0,0],fails=[];
+  DATA.threats.forEach(q=>{if(state.answers[q.id]===q.correct){s1++;by[q.correct]++}else fails.push(q.id)});
+  DATA.opps.forEach(q=>{if(state.answers[q.id]===q.correct)s2++});
+  const sc=el("div","score");sc.appendChild(el("span","big",String(s1)));sc.appendChild(el("span","of","/ 20 en amenazas · bonus "+s2+" / 4"));r.appendChild(sc);
+  const verdict=s1>=18?"Dominas las estrategias. Repasa solo los casos que fallaste.":s1>=14?"Vas bien. Lee la explicación «por qué no la vecina» de los casos fallados.":s1>=10?"Repasa el cuadro de las cinco estrategias y vuelve a intentarlo.":"Relee la explicación de cada estrategia y repite el test mañana.";
+  r.appendChild(el("p","verdict",verdict));
+  const ul=el("ul","strat");
+  THREAT.forEach((name,k)=>{
+    const li=el("li");li.appendChild(el("span","",name));
+    const bar=el("div","sbar");const i=el("i",by[k]<=1?"low":by[k]===2?"mid":"");i.style.width=(by[k]/4*100)+"%";bar.appendChild(i);li.appendChild(bar);
+    li.appendChild(el("span","n",by[k]+"/4"));ul.appendChild(li);
+  });
+  r.appendChild(ul);
+  const weak=THREAT.map((n,k)=>k).filter(k=>by[k]<=2);
+  if(weak.length){weak.forEach(k=>{r.appendChild(el("p","tip",TIPS[k]))})}
+  if(fails.length){
+    r.appendChild(el("p","",s1===20?"":"Casos para revisar:"));
+    const j=el("div","jumps");
+    fails.forEach(id=>{const b=el("button","jump","Caso "+id);b.type="button";b.dataset.jump=id;j.appendChild(b)});
+    r.appendChild(j);
+  }
+  const act=el("div","actions");const again=el("button","btn ghost","Volver a empezar");again.type="button";again.id="reset";act.appendChild(again);r.appendChild(act);
+}
+DATA.threats.forEach(q=>$("threats").appendChild(buildCard({...q,opts:THREAT})));
+DATA.opps.forEach(q=>$("opps").appendChild(buildCard({...q,opts:OPP})));
+
+document.addEventListener("click",e=>{
+  const o=e.target.closest(".opt");
+  if(o&&!state.checked){state.answers[o.dataset.q]=+o.dataset.i;save();paint();return}
+  const j=e.target.closest(".jump");
+  if(j){const c=$("c-"+j.dataset.jump);if(c)c.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"});return}
+  if(e.target.id==="check"){
+    if(state.checked){reset();return}
+    state.checked=true;save();paint();
+    $("result").scrollIntoView({behavior:"auto",block:"start"});return}
+  if(e.target.id==="reset"){reset()}
+});
+function reset(){state.answers={};state.checked=false;save();paint();window.scrollTo({top:0})}
+document.addEventListener("keydown",e=>{
+  const o=e.target.closest&&e.target.closest(".opt");if(!o||state.checked)return;
+  const k=e.key;if(!["ArrowRight","ArrowDown","ArrowLeft","ArrowUp"].includes(k))return;
+  e.preventDefault();const sibs=[...o.parentElement.querySelectorAll(".opt")];let i=sibs.indexOf(o);
+  i=(k==="ArrowRight"||k==="ArrowDown")?(i+1)%5:(i+4)%5;sibs[i].focus();sibs[i].click();sibs[i].focus();
+});
+paint();
+</script>
