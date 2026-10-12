@@ -338,14 +338,5 @@ def cliente():
      ["Avena (1 scoop)","1 scoop de hojuelas de quinua (≈ 22 g)"],
      ["Grasa del día","½ palta (4 a 5 días) <b>o</b> 150 g de queso fresco (máximo 2 días a la semana)"]]
     s.append(tbl(data,[W*.2,W*.8],pad=5))
-    s.append(Spacer(1,10))
-    s.append(P("Consejos para digerir mejor la ensalada","h2"))
-    tips=["Empieza el plato por la ensalada y mastica bien.","Brócoli, coliflor y col: al vapor 3–5 minutos, caen mejor que crudos.",
-          "Aliña con limón y 1 cdta de aceite de oliva.","Toma el agua repartida en el día; durante la comida solo sorbos.",
-          "Camina 10 minutos después del almuerzo y de la cena.","Una infusión de manzanilla, anís o jengibre sin azúcar después de cenar.",
-          "Si te hincha, reduce la ensalada cruda a 1½ tazas por unos días y vuelve a subir."]
-    s.append(tbl([["Consejo"]]+[[f"✓ {x}"] for x in tips],[W],pad=3))
-    s.append(Spacer(1,8))
-    s.append(P("<b>Fin de semana:</b> envía una foto de cada comida del sábado y domingo y tu peso en ayunas del domingo. Con eso ajustamos la siguiente semana.","bl"))
     doc.build(s)
 tecnico(); cliente(); print("ok")
